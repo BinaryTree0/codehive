@@ -32,6 +32,9 @@ class TokenSerializer(serializers.Serializer):
 
 
 class PasswordResetSerializer(serializers.Serializer):
+    """
+    Serializer for password reset endpoint.
+    """
     token = serializers.CharField(required=True, max_length=400)
     password = serializers.CharField(required=True)
 

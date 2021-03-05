@@ -16,6 +16,9 @@ from .utils import send_activation_mail, send_reset_mail
 
 
 class UserViewSet(ModelViewSet):
+    """
+    This endpoint contains all basic functionalities regarding the user model.
+    """
     serializer_class = UserSerializer
     queryset = CustomUser.objects.all()
     authentication_classes = [TokenAuthentication, ]
@@ -23,6 +26,9 @@ class UserViewSet(ModelViewSet):
 
 
 class ActivateView(CreateAPIView):
+    """
+    This endpoint is used to request a new user activation email.
+    """
     serializer_class = EmailSerializer
 
     def post(self, request, format=None):
@@ -35,6 +41,9 @@ class ActivateView(CreateAPIView):
 
 
 class ActivateConfirmView(CreateAPIView):
+    """
+    This endpoint is used to activate the users account.
+    """
     serializer_class = TokenSerializer
 
     def post(self, request, format=None):
@@ -53,6 +62,9 @@ class ActivateConfirmView(CreateAPIView):
 
 
 class ResetView(CreateAPIView):
+    """
+    This endpoint is used to request a password reset.
+    """
     serializer_class = EmailSerializer
 
     def post(self, request, format=None):
@@ -66,6 +78,9 @@ class ResetView(CreateAPIView):
 
 
 class ResetConfirmView(CreateAPIView):
+    """
+    This endpoint is used to reset the users password.
+    """
     serializer_class = PasswordResetSerializer
 
     def post(self, request, format=None):
@@ -87,7 +102,7 @@ class ResetConfirmView(CreateAPIView):
 
 class ChangePasswordView(UpdateAPIView):
     """
-    An endpoint for changing password.
+    This endpoint is used to change the user password.
     """
     serializer_class = ChangePasswordSerializer
     permission_classes = [IsAuthenticated, ]

@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.test import APIClient
 from rest_framework import status
-from .serilaziers import UserSerializer
+from rest_framework.test import APIClient
+
 from .models import CustomUser, UserActivationToken
-from django.core import mail
+from .serilaziers import UserSerializer
 
 
 class UsersManagersTests(TestCase):
