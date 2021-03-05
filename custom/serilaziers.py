@@ -33,7 +33,7 @@ class TokenSerializer(serializers.Serializer):
 
 class PasswordResetSerializer(serializers.Serializer):
     token = serializers.CharField(required=True, max_length=400)
-    password = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(required=True)
 
 
 class ChangePasswordSerializer(serializers.Serializer):

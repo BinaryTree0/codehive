@@ -31,7 +31,7 @@ class ActivateView(CreateAPIView):
             user = CustomUser.objects.get(email=serializer.data["email"])
             send_activation_mail(user)
 
-        return Response(data={"Verification": True}, status=status.HTTP_202_ACCEPTED)
+        return Response(status=status.HTTP_202_ACCEPTED)
 
 
 class ActivateConfirmView(CreateAPIView):
@@ -47,9 +47,9 @@ class ActivateConfirmView(CreateAPIView):
                 if not user.is_confirmed:
                     user.is_confirmed = True
                     user.save()
-                return Response(data={"activation": True}, status=status.HTTP_200_OK)
+                return Response(status=status.HTTP_200_OK)
 
-        return Response(data={"activation": False}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class ResetView(CreateAPIView):
@@ -62,7 +62,7 @@ class ResetView(CreateAPIView):
 
             send_reset_mail(user)
 
-        return Response(data={"Verification": True}, status=status.HTTP_202_ACCEPTED)
+        return Response(status=status.HTTP_202_ACCEPTED)
 
 
 class ResetConfirmView(CreateAPIView):
@@ -71,8 +71,8 @@ class ResetConfirmView(CreateAPIView):
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            token = serializer.data["token"]
             try:
-                token = serializer.data["token"]
                 user = UserResetToken.objects.get(reset_token=token).user
             except:
                 user = None
@@ -80,9 +80,9 @@ class ResetConfirmView(CreateAPIView):
             if user is not None and password_reset_token.check_token(user, token):
                 user.set_password(serializer.data["password"])
                 user.save()
-                return Response(data={"reset": True}, status=status.HTTP_200_OK)
+                return Response(status=status.HTTP_200_OK)
 
-        return Response(data={"reset": False}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class ChangePasswordView(UpdateAPIView):

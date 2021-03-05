@@ -14,11 +14,10 @@ class ActivationTokenGenerator(PasswordResetTokenGenerator):
 
     def make_token(self, user):
         token = super().make_token(user)
-        try:
-            user_token = UserActivationToken.objects.filter(
-                user=user).update(activation_token=token)
-        except User.DoesNotExist:
-            user_token = UserActivationToken.objects.create(user=user, activation_token=token)
+        user_token = UserActivationToken.objects.update_or_create(
+            defaults={"activation_token": token},
+            user=user
+        )
         return token
 
     """
@@ -64,10 +63,10 @@ class ResetTokenGenerator(PasswordResetTokenGenerator):
 
     def make_token(self, user):
         token = super().make_token(user)
-        try:
-            user_token = UserResetToken.objects.filter(user=user).update(reset_token=token)
-        except User.DoesNotExist:
-            user_token = UserResetToken.objects.create(user=user, reset_token=token)
+        user_token = UserResetToken.objects.update_or_create(
+            defaults={"reset_token": token},
+            user=user
+        )
         return token
 
 

@@ -4,7 +4,8 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from .serilaziers import UserSerializer
-from .models import CustomUser
+from .models import CustomUser, UserActivationToken
+from django.core import mail
 
 
 class UsersManagersTests(TestCase):
@@ -34,6 +35,7 @@ class UsersManagersTests(TestCase):
         self.assertTrue(admin_user.is_active)
         self.assertTrue(admin_user.is_staff)
         self.assertTrue(admin_user.is_superuser)
+        self.assertTrue(not admin_user.is_confirmed)
         try:
             self.assertIsNone(admin_user.username)
         except AttributeError:
@@ -80,6 +82,7 @@ class UsersAPITests(TestCase):
     def test_api_user_creation(self):
         response = self.create_user(email='normal@user.com', password="foo")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(UserActivationToken.objects.get(user__email='normal@user.com'))
 
     def test_api_user_list(self):
         url = reverse("user-api:user-list")
@@ -104,3 +107,24 @@ class UsersAPITests(TestCase):
         payload = {"old_password": "foo", "new_password": "boooooooooo"}
         response = client.put(url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_activate_user(self):
+        self.create_user(email='normal1@user.com', password="foo")
+        self.assertEqual(len(mail.outbox), 1)
+        token = mail.outbox[0].body.split("token=")[1]
+        url = reverse("user-api:user-activate-confirm")
+        payload = {"token": token}
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(CustomUser.objects.get(email='normal1@user.com').is_confirmed)
+
+    def test_reset_password(self):
+        self.create_user(email='normal1@user.com', password="foo")
+        url = reverse("user-api:password-reset")
+        payload = {"email": 'normal1@user.com'}
+        self.client.post(url, payload, format="json")
+        token = mail.outbox[1].body.split("token=")[1]
+        url = reverse("user-api:password-reset-confirm")
+        payload = {"token": token, "password": "bungaloooooo"}
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
