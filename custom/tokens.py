@@ -1,7 +1,8 @@
 import six
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.http import base36_to_int
 from django.utils.crypto import constant_time_compare
+from django.utils.http import base36_to_int
+
 from .models import UserActivationToken, UserResetToken
 
 

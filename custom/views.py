@@ -1,6 +1,6 @@
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, UpdateAPIView
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.generics import CreateAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -8,16 +8,18 @@ from rest_framework.viewsets import ModelViewSet
 
 from .models import CustomUser, UserActivationToken, UserResetToken
 from .permissions import IsCreationOrIsAuthenticated
-from .serilaziers import UserSerializer, EmailSerializer, TokenSerializer, PasswordResetSerializer, ChangePasswordSerializer
-from .utils import send_activation_mail, send_reset_mail
+from .serilaziers import (ChangePasswordSerializer, EmailSerializer,
+                          PasswordResetSerializer, TokenSerializer,
+                          UserSerializer)
 from .tokens import account_activation_token, password_reset_token
+from .utils import send_activation_mail, send_reset_mail
 
 
 class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
     queryset = CustomUser.objects.all()
-#    authentication_classes = [TokenAuthentication, ]
-#    permission_classes = [IsCreationOrIsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsCreationOrIsAuthenticated, ]
 
 
 class ActivateView(CreateAPIView):
@@ -88,8 +90,8 @@ class ChangePasswordView(UpdateAPIView):
     An endpoint for changing password.
     """
     serializer_class = ChangePasswordSerializer
-    # permission_classes = [IsAuthenticated, ]
-    # authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
 
     def put(self, request, *args, **kwargs):
         user = CustomUser.objects.get(id=kwargs["uid"])

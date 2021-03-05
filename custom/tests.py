@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-
+from django.urls import reverse
+from rest_framework.test import APIClient
+from rest_framework import status
 from .serilaziers import UserSerializer
+from .models import CustomUser
 
 
 class UsersManagersTests(TestCase):
@@ -49,12 +52,55 @@ class UsersManagersTests(TestCase):
 
 
 class UsersAPITests(TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.client = APIClient()
+
+    def create_user(self, email, password):
+        payload = {'email': email, 'password': password}
+        url = reverse("user-api:user-list")
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        return response
+
+    def get_authorization_token(self, email, password):
+        url = reverse("user-api:user-login")
+        payload = {"username": email, "password": password}
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return response.data["token"]
 
     def test_user_serializer(self):
         User = get_user_model()
         user = User.objects.create_user(email='normal@user.com', password='foo')
         serialized_user = UserSerializer(user)
         self.assertEqual(serialized_user.data["email"], 'normal@user.com')
-        print(serialized_user.data)
         deserialized_user = UserSerializer(serialized_user)
-        self.assertEqual(user, deserialized_user)
+
+    def test_api_user_creation(self):
+        response = self.create_user(email='normal@user.com', password="foo")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_api_user_list(self):
+        url = reverse("user-api:user-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.create_user(email='normal1@user.com', password="foo")
+        self.create_user(email='normal2@user.com', password="foo")
+        token = self.get_authorization_token("normal1@user.com", "foo")
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token)
+        response = client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
+    def test_password_change(self):
+        self.create_user(email='normal1@user.com', password="foo")
+        token = self.get_authorization_token("normal1@user.com", "foo")
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token)
+        id = CustomUser.objects.get(email='normal1@user.com').id
+        url = reverse("user-api:password-change", kwargs={"uid": id})
+        payload = {"old_password": "foo", "new_password": "boooooooooo"}
+        response = client.put(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
