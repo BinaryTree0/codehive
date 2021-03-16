@@ -104,7 +104,7 @@ class UsersAPITests(TestCase):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         id = CustomUser.objects.get(email='normal1@user.com').id
-        url = reverse("user-api:password-change", kwargs={"uid": id})
+        url = reverse("user-api:password-change", kwargs={"id": id})
         payload = {"old_password": "foo", "new_password": "boooooooooo"}
         response = client.put(url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

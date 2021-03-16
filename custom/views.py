@@ -109,7 +109,7 @@ class ChangePasswordView(UpdateAPIView):
     authentication_classes = [TokenAuthentication, ]
 
     def put(self, request, *args, **kwargs):
-        user = CustomUser.objects.get(id=kwargs["uid"])
+        user = CustomUser.objects.get(id=kwargs["id"])
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
