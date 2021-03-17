@@ -4,9 +4,8 @@ from custom.models import CustomUser
 
 
 def get_upload_post_path(instance, filename):
-    post_media_url = slugify(str(instance.author.id))+"/" + \
-        slugify(str(instance.title))+"/"+slugify(str(instance.created))
-    return 'posts/' + post_media_url + "/" + filename
+    return 'posts/' + slugify(str(instance.author.id))+"/" + slugify(str(instance.title))\
+        + "."+filename.split(".")[-1]
 
 
 class Post(models.Model):
@@ -20,8 +19,7 @@ class Post(models.Model):
 
 
 def get_upload_task_path(instance, filename):
-    return 'tasks/' + str(instance.post.id) + "/" + slugify(str(instance.title)) +\
-        "/"+slugify(str(instance.created))+"/"+filename
+    return 'tasks/' + str(instance.post.id) + "/" + slugify(str(instance.title)) + "."+filename.split(".")[-1]
 
 
 class Task(models.Model):
@@ -35,11 +33,14 @@ class Task(models.Model):
     difficulty = models.CharField(choices=Difficulties.choices, max_length=12)
     files = models.FileField(upload_to=get_upload_task_path)
     time_limit = models.DateTimeField()
-    created = models.DateTimeField()
+    created = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('post_id', 'title',)
 
 
 def get_upload_result_path(instance, filename):
-    return 'results/'+str(instance.task.post.id)+"/"+str(instance.task.id)+"/"+str(user.id)
+    return 'results/'+str(instance.task.post.id)+"/"+str(instance.task.id)+"/"+str(instance.author.id) + "."+filename.split(".")[-1]
 
 
 class Result(models.Model):
@@ -47,3 +48,6 @@ class Result(models.Model):
     task = models.ForeignKey(Task, related_name="results", on_delete=models.CASCADE)
     description = models.TextField()
     files = models.FileField(upload_to=get_upload_result_path)
+
+    class Meta:
+        unique_together = ('author_id', 'task_id',)

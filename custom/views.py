@@ -1,5 +1,7 @@
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.generics import CreateAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -13,6 +15,21 @@ from .serilaziers import (ChangePasswordSerializer, EmailSerializer,
                           UserSerializer)
 from .tokens import account_activation_token, password_reset_token
 from .utils import send_activation_mail, send_reset_mail
+
+
+class ObtainAuthTokenWithActivation(ObtainAuthToken):
+    """
+    This endpoint modifies the obtaintokenauth class by adding a account activation check
+    """
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        if not user.is_confirmed:
+            return Response({"Permission": "The account is not activated!"}, status.HTTP_401_UNAUTHORIZED)
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key})
 
 
 class UserViewSet(ModelViewSet):
@@ -41,9 +58,6 @@ class ActivateView(CreateAPIView):
 
 
 class ActivateConfirmView(CreateAPIView):
-    """
-    This endpoint is used to activate the users account.
-    """
     serializer_class = TokenSerializer
 
     def post(self, request, format=None):

@@ -3,7 +3,7 @@ from rest_framework import routers
 from rest_framework.authtoken import views
 
 from .views import (ActivateConfirmView, ActivateView, ChangePasswordView,
-                    ResetConfirmView, ResetView, UserViewSet)
+                    ResetConfirmView, ResetView, UserViewSet, ObtainAuthTokenWithActivation)
 
 app_name = "custom"
 
@@ -14,7 +14,7 @@ urlpatterns = [
     path("users/<int:id>/password", ChangePasswordView.as_view(), name="password-change"),
     path('users/password-reset', ResetView.as_view(), name="password-reset"),
     path('users/password-reset-confirm', ResetConfirmView.as_view(), name="password-reset-confirm"),
-    path('users/login', views.obtain_auth_token, name="user-login"),
+    path('users/login', ObtainAuthTokenWithActivation.as_view(), name="user-login"),
     path('users/account-activate', ActivateView.as_view(), name="user-activate"),
     path('users/account-activate-confirm', ActivateConfirmView.as_view(), name="user-activate-confirm"),
 ] + router.urls

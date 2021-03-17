@@ -27,6 +27,8 @@ SECRET_KEY = 'sy2@#9jecg1bcn7d-h(s+%fax1y2h+n6y*hto@l-!ur8mez2cq'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+# Cors
 CORS_ORIGIN_ALLOW_ALL = True
 
 
@@ -118,6 +120,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Swagger
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    },
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -152,7 +165,7 @@ EMAIL_HOST_USER = "codehivemail@gmail.com"
 EMAIL_HOST_PASSWORD = "avkinjfiyltjgrsd"
 
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 }
 
 PASSWORD_RESET_TIMEOUT = 86400
