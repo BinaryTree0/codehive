@@ -18,6 +18,7 @@ class UsersManagersTests(TestCase):
         self.assertTrue(user.is_active)
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
+        self.assertFalse(user.is_confirmed)
         try:
             self.assertIsNone(user.username)
         except AttributeError:
@@ -36,7 +37,7 @@ class UsersManagersTests(TestCase):
         self.assertTrue(admin_user.is_active)
         self.assertTrue(admin_user.is_staff)
         self.assertTrue(admin_user.is_superuser)
-        self.assertTrue(not admin_user.is_confirmed)
+        self.assertTrue(admin_user.is_confirmed)
         try:
             self.assertIsNone(admin_user.username)
         except AttributeError:
@@ -66,12 +67,27 @@ class UsersAPITests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         return response
 
+    def activate_user(self, email):
+        User = get_user_model()
+        User.objects.filter(email=email).update(is_confirmed=True)
+
     def get_authorization_token(self, email, password):
         url = reverse("user-api:user-login")
         payload = {"username": email, "password": password}
         response = self.client.post(url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         return response.data["token"]
+
+    def test_token_api(self):
+        self.create_user(email='normal1@user.com', password="foo")
+        self.create_user(email='normal2@user.com', password="foo")
+        self.activate_user("normal2@user.com")
+        try:
+            self.get_authorization_token("normal1@user.com", "foo")
+        except AssertionError:
+            pass
+        token = self.get_authorization_token("normal2@user.com", "foo")
+        self.assertTrue(token)
 
     def test_user_serializer(self):
         User = get_user_model()
@@ -91,7 +107,8 @@ class UsersAPITests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.create_user(email='normal1@user.com', password="foo")
         self.create_user(email='normal2@user.com', password="foo")
-        token = self.get_authorization_token("normal1@user.com", "foo")
+        self.activate_user("normal2@user.com")
+        token = self.get_authorization_token("normal2@user.com", "foo")
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         response = client.get(url)
@@ -100,6 +117,7 @@ class UsersAPITests(TestCase):
 
     def test_password_change(self):
         self.create_user(email='normal1@user.com', password="foo")
+        self.activate_user("normal1@user.com")
         token = self.get_authorization_token("normal1@user.com", "foo")
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Token ' + token)
