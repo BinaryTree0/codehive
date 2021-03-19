@@ -3,6 +3,18 @@ from django.template.defaultfilters import slugify
 from custom.models import CustomUser
 
 
+def get_upload_company_path(instance, filename):
+    return 'company/' + slugify(instance.name) + "."+filename.split(".")[-1]
+
+
+class Company(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    address = models.CharField(max_length=100)
+    description = models.TextField()
+    image = models.ImageField(upload_to=get_upload_company_path)
+    name = models.CharField(max_length=100)
+
+
 def get_upload_post_path(instance, filename):
     return 'posts/' + slugify(str(instance.author.id))+"/" + slugify(str(instance.title))\
         + "."+filename.split(".")[-1]

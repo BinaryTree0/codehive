@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Post, Task, Result
+from .models import Post, Task, Result, Company
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -32,4 +32,10 @@ class TaskListSerializer(serializers.ModelSerializer):
 class ResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Result
+        fields = "__all__"
+
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
         fields = "__all__"

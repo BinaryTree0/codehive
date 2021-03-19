@@ -1,16 +1,17 @@
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .models import Post, Task, Result
-from .serializers import PostSerializer, PostListSerializer, TaskSerializer, TaskListSerializer, ResultSerializer
+from .models import Post, Task, Result, Company
+from .serializers import PostSerializer, PostListSerializer, TaskSerializer, TaskListSerializer, ResultSerializer, CompanySerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+from .permissions import IsListDetailOrIsAuthenticated
 
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated, ]
+    permission_classes = [IsListDetailOrIsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
 
     def get_serializer_class(self):
@@ -42,3 +43,8 @@ class ResultViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+class CompanyViewSet(viewsets.ModelViewSet):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
