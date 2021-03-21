@@ -5,7 +5,7 @@ class IsListDetailOrIsAuthenticated(BasePermission):
 
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
-            if view.action == 'list' and view.action == "retrieve":
+            if view.action == 'list' or view.action == "retrieve":
                 return True
             else:
                 return False

@@ -13,6 +13,7 @@ class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = [IsListDetailOrIsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
+    filter_fields = ('title', 'summary')
 
     def get_serializer_class(self):
         if self.action == 'list':
