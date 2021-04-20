@@ -1,6 +1,36 @@
 from rest_framework import serializers
 
-from .models import Post, Task, Result, Company
+from .models import Institution, Profile, ProfileSkill, ProfileEducation, ProfileExperience, Post, Task, Result, Company
+
+
+class InstitutionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Institution
+        fields = "__all__"
+
+
+class ProfileSkill(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileSkill
+        fileds = "__all__"
+
+
+class ProfileEducation(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileEducation
+        fileds = "__all__"
+
+
+class ProfileExperience(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileExperience
+        fileds = "__all__"
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = "__all__"
 
 
 class PostSerializer(serializers.ModelSerializer):

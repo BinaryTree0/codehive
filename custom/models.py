@@ -9,10 +9,12 @@ from .managers import CustomUserManager
 
 class CustomUser(AbstractUser):
     """
-    CustomUser model where the username is removed and the email of the user
+    CustomUser model where the username,first_name and last_name are removed and the email of the user
     is used for login authentication instead.
     """
     username = None
+    first_name = None
+    last_name = None
     email = models.EmailField(_('email address'), unique=True)
     is_confirmed = models.BooleanField(default=False)
 
