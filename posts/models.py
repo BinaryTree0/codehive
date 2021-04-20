@@ -30,7 +30,7 @@ class Profile(models.Model):
     phone = models.CharField(max_length=50)
     github = models.CharField(max_length=100)
     linkedin = models.CharField(max_length=100)
-    website = model.CharField(max_length=100)
+    website = models.CharField(max_length=100)
 
 
 class ProfileSkill:
@@ -42,15 +42,6 @@ class ProfileEducation:
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     institution = models.ForeignKey(Institution, on_delete=models.SET_NULL)
     title = models.CharField(max_length=100)
-    start_date = models.DateField()
-    end_date = models.DateField()
-
-
-class ProfileExperience:
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.SET_NULL)
-    title = models.CharField(max_length=100)
-    description = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField()
 
@@ -67,6 +58,15 @@ class Company(models.Model):
     linkedin = models.CharField(max_length=200)
     twitter = models.CharField(max_length=200)
     website = models.CharField(max_length=200)
+
+
+class ProfileExperience:
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL)
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    start_date = models.DateField()
+    end_date = models.DateField()
 
 
 def get_upload_post_path(instance, filename):
@@ -125,7 +125,7 @@ class Task(models.Model):
 
 
 class TaskTag(models.Model):
-    task = models.ForeignKey(Task, related_name='tags', on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, related_name='task_tags', on_delete=models.CASCADE)
     tag = models.CharField(max_length=100)
 
 

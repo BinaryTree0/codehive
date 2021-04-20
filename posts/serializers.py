@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from .models import Institution, Profile, ProfileSkill, ProfileEducation, ProfileExperience, Post, Task, Result, Company
+from .models import Institution, Profile, ProfileSkill, \
+    ProfileEducation, ProfileExperience, Post, Task, Company, Submission
 
 
 class InstitutionSerializer(serializers.ModelSerializer):
@@ -59,9 +60,9 @@ class TaskListSerializer(serializers.ModelSerializer):
         fields = ["post", "title", "difficulty", "time_limit"]
 
 
-class ResultSerializer(serializers.ModelSerializer):
+class SubmissionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Result
+        model = Submission
         fields = "__all__"
 
 

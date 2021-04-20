@@ -1,8 +1,9 @@
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from .models import Post, Task, Result, Company
-from .serializers import PostSerializer, PostListSerializer, TaskSerializer, TaskListSerializer, ResultSerializer, CompanySerializer
+from .models import Post, Task, Submission, Company
+from .serializers import PostSerializer, PostListSerializer, TaskSerializer, \
+    TaskListSerializer, SubmissionSerializer, CompanySerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from .permissions import IsListDetailOrIsAuthenticated
@@ -36,9 +37,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         return TaskSerializer
 
 
-class ResultViewSet(viewsets.ModelViewSet):
-    queryset = Result.objects.all()
-    serializer_class = ResultSerializer
+class SubmissionViewSet(viewsets.ModelViewSet):
+    queryset = Submission.objects.all()
+    serializer_class = SubmissionSerializer
     permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
 
