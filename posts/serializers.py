@@ -24,10 +24,17 @@ class ProfileSkillSerializer(serializers.ModelSerializer):
         depth = 1
 
     @staticmethod
+<<<<<<< HEAD
     def create_profile(instance, validated_data):
         for skill in validated_data:
             skill = Skill.objects.get(name=skill)
             ProfileSkill.objects.create(profile=instance, skill=skill)
+=======
+    def create_profile(validated_data):
+        for skill in validated_data:
+            skill = Skill.objects.get(name=skill)
+            ProfileSkill.objects.create(profile=profile, skill=skill)
+>>>>>>> 558e720c113858bec3e6044126f45000c4ebf93d
 
     @staticmethod
     def update_profile(instance, validated_data):
@@ -82,13 +89,20 @@ class ProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         skills = validated_data.pop('skills') if "skills" in validated_data else []
         profile = Profile.objects.create(**validated_data)
+<<<<<<< HEAD
         ProfileSkillSerializer.create_profile(profile, skills)
+=======
+        ProfileSkillSerializer.create_profile(skills)
+>>>>>>> 558e720c113858bec3e6044126f45000c4ebf93d
         return profile
 
     def update(self, instance, validated_data):
         skills = validated_data.pop('skills') if "skills" in validated_data else []
         ProfileSkillSerializer.update_profile(instance, skills)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 558e720c113858bec3e6044126f45000c4ebf93d
         Profile.objects.filter(id=instance.id).update(**validated_data)
         return instance
 
