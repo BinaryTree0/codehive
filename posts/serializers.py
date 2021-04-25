@@ -18,25 +18,34 @@ class SkillSerializer(serializers.ModelSerializer):
 
 
 class ProfileSkillSerializer(serializers.ModelSerializer):
+    profile_skill = serializers.CharField(write_only=True)
+
     class Meta:
         model = ProfileSkill
-        exclude = ["profile", ]
+        exclude = ["profile", "id"]
         depth = 1
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['profile_skill'] = response.pop("skill")
+        return response
 
     @staticmethod
     def create_profile(instance, validated_data):
-        for skill in validated_data:
+        skills = [skill["profile_skill"] for skill in validated_data]
+        for skill in skills:
             skill = Skill.objects.get(name=skill)
             ProfileSkill.objects.create(profile=instance, skill=skill)
 
     @staticmethod
     def update_profile(instance, validated_data):
+        skills = [skill["profile_skill"] for skill in validated_data]
         existing_skills = [skill.skill.name for skill in ProfileSkill.objects.filter(
             profile_id=instance.id).all()]
         for existing in existing_skills:
             if existing not in validated_data:
                 ProfileSkill.objects.filter(skill__name=existing).delete()
-        for skill in validated_data:
+        for skill in skills:
             if skill not in existing_skills:
                 skill = Skill.objects.get(name=skill)
                 ProfileSkill.objects.create(profile=instance, skill=skill)
@@ -67,26 +76,28 @@ class ProfileUserSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    skills = StringListField(write_only=True)
-    profile_skills = ProfileSkillSerializer(many=True, read_only=True)
+    profile_skills = ProfileSkillSerializer(many=True)
     user = ProfileUserSerializer(read_only=True)
 
     """
 {
-  "skills": ["python"],
+  "profile_skills": [
+      {"profile_skill":"python"},
+      {"profile_skill":"java"}
+  ],
   "first_name": "a",
   "last_name": "a"
 }
     """
 
     def create(self, validated_data):
-        skills = validated_data.pop('skills') if "skills" in validated_data else []
+        skills = validated_data.pop('profile_skills') if "profile_skills" in validated_data else []
         profile = Profile.objects.create(**validated_data)
         ProfileSkillSerializer.create_profile(profile, skills)
         return profile
 
     def update(self, instance, validated_data):
-        skills = validated_data.pop('skills') if "skills" in validated_data else []
+        skills = validated_data.pop('profile_skills') if "profile_skills" in validated_data else []
         ProfileSkillSerializer.update_profile(instance, skills)
 
         Profile.objects.filter(id=instance.id).update(**validated_data)
