@@ -8,7 +8,7 @@ def get_upload_institution_path(instance, filename):
 
 
 class Institution(models.Model):
-    name = models.CharField(max_length=100, primary_key=True)
+    name = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
     image = models.ImageField(upload_to=get_upload_institution_path)
 
@@ -48,8 +48,8 @@ class Profile(models.Model):
 
 
 class ProfileSkill(models.Model):
-    profile = models.ForeignKey(Profile, related_name='profile_skills', on_delete=models.CASCADE)
-    skill = models.ForeignKey(Skill, related_name='profile_skills', on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, related_name='skills', on_delete=models.CASCADE)
+    skill = models.ForeignKey(Skill, related_name='skills', on_delete=models.CASCADE)
 
 
 class ProfileEducation(models.Model):

@@ -18,7 +18,7 @@ class SkillSerializer(serializers.ModelSerializer):
 
 
 class ProfileSkillSerializer(serializers.ModelSerializer):
-    profile_skill = serializers.CharField(write_only=True)
+    skill_ = serializers.CharField(write_only=True)
 
     class Meta:
         model = ProfileSkill
@@ -27,24 +27,24 @@ class ProfileSkillSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        response['profile_skill'] = response.pop("skill")
+        response = response.pop("skill")
         return response
 
     @staticmethod
     def create_profile(instance, validated_data):
-        skills = [skill["profile_skill"] for skill in validated_data]
+        skills = [skill["skill_"] for skill in validated_data]
         for skill in skills:
             skill = Skill.objects.get(name=skill)
             ProfileSkill.objects.create(profile=instance, skill=skill)
 
     @staticmethod
     def update_profile(instance, validated_data):
-        skills = [skill["profile_skill"] for skill in validated_data]
+        skills = [skill["skill_"] for skill in validated_data]
         existing_skills = [skill.skill.name for skill in ProfileSkill.objects.filter(
             profile_id=instance.id).all()]
         for existing in existing_skills:
             if existing not in validated_data:
-                ProfileSkill.objects.filter(skill__name=existing).delete()
+                ProfileSkill.objects.filter(profile=instance, skill__name=existing).delete()
         for skill in skills:
             if skill not in existing_skills:
                 skill = Skill.objects.get(name=skill)
@@ -52,17 +52,92 @@ class ProfileSkillSerializer(serializers.ModelSerializer):
 
 
 class ProfileEducationSerializer(serializers.ModelSerializer):
+    institution_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = ProfileEducation
-        fields = "__all__"
-        read_only_fields = ('profile',)
+        exclude = ["profile", ]
+        depth = 1
+
+    @staticmethod
+    def create_profile(instance, validated_data):
+        for education in validated_data:
+            institution = Institution.objects.get(id=education["institution_id"])
+            ProfileEducation.objects.create(
+                profile=instance,
+                institution=institution,
+                start_date=education["start_date"],
+                end_date=education["end_date"]
+            )
+
+    @staticmethod
+    def update_profile(instance, validated_data):
+        institutions = [data["institution_id"] for data in validated_data]
+        existing_institutions = [data.institution.id for data in ProfileEducation.objects.filter(
+            profile_id=instance.id).all()]
+        for existing in existing_institutions:
+            if existing not in institutions:
+                ProfileEducation.objects.filter(profile=instance, institution_id=existing).delete()
+        for data in validated_data:
+            if data["institution_id"] not in existing_institutions:
+                institution = Institution.objects.get(id=data["institution_id"])
+                ProfileEducation.objects.create(
+                    profile=instance,
+                    institution=institution,
+                    start_date=data["start_date"],
+                    end_date=data["end_date"]
+                )
+            else:
+                ProfileEducation.objects.filter(profile=instance, institution_id=existing).update(
+                    start_date=data["start_date"],
+                    end_date=data["end_date"]
+                )
 
 
 class ProfileExperienceSerializer(serializers.ModelSerializer):
+    company_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = ProfileExperience
         fields = "__all__"
         read_only_fields = ('profile',)
+
+    @staticmethod
+    def create_profile(instance, validated_data):
+        for experience in validated_data:
+            company = Company.objects.get(id=experience["company_id"])
+            ProfileExperience.objects.create(
+                profile=instance,
+                company=company,
+                start_date=experience["start_date"],
+                end_date=experience["end_date"],
+                description=experience["description"]
+            )
+
+    @staticmethod
+    def update_profile(instance, validated_data):
+        companies = [data["company_id"] for data in validated_data]
+        existing_companies = [data.company.id for data in ProfileExperience.objects.filter(
+            profile_id=instance.id).all()]
+        for existing in existing_companies:
+            if existing not in companies:
+                ProfileExperience.objects.filter(profile=instance, company_id=existing).delete()
+        for data in validated_data:
+            if data["company_id"] not in existing_companies:
+                company = Company.objects.get(id=data["company_id"])
+                ProfileExperience.objects.create(
+                    profile=instance,
+                    company=company,
+                    start_date=data["start_date"],
+                    end_date=data["end_date"],
+                    description=data["description"]
+                )
+            else:
+                ProfileExperience.objects.filter(profile=instance, company_id=existing).update(
+                    start_date=data["start_date"],
+                    end_date=data["end_date"],
+                    description=data["description"]
+                )
 
 
 class StringListField(serializers.ListField):
@@ -76,29 +151,47 @@ class ProfileUserSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    profile_skills = ProfileSkillSerializer(many=True)
+    skills = ProfileSkillSerializer(many=True, required=False)
+    education = ProfileEducationSerializer(many=True, required=False)
+    experiences = ProfileExperienceSerializer(many=True, required=False)
     user = ProfileUserSerializer(read_only=True)
 
     """
-{
-  "profile_skills": [
-      {"profile_skill":"python"},
-      {"profile_skill":"java"}
-  ],
-  "first_name": "a",
-  "last_name": "a"
-}
+    {
+      "skills": [
+          {"name":"python"}
+      ],
+      "education": [
+          {"institution_id":1,"start_date":"2015-02-11", "end_date":"2015-02-11"}
+      ],
+      "experiences": [
+          {"company_id":1,"start_date":"2015-02-11", "end_date":"2017-02-11", "description":"Hello world"}
+      ],
+      "first_name": "a",
+      "last_name": "a"
+    }
     """
 
     def create(self, validated_data):
-        skills = validated_data.pop('profile_skills') if "profile_skills" in validated_data else []
+        skills = validated_data.pop('skills') if "skills" in validated_data else []
+        education = validated_data.pop('education') if "education" in validated_data else []
+        experience = validated_data.pop('experiences') if "experiences" in validated_data else []
+
         profile = Profile.objects.create(**validated_data)
+
         ProfileSkillSerializer.create_profile(profile, skills)
+        ProfileEducationSerializer.create_profile(profile, education)
+        ProfileExperienceSerializer.create_profile(profile, experience)
         return profile
 
     def update(self, instance, validated_data):
-        skills = validated_data.pop('profile_skills') if "profile_skills" in validated_data else []
+        skills = validated_data.pop('skills') if "skills" in validated_data else []
+        education = validated_data.pop('education') if "education" in validated_data else []
+        experience = validated_data.pop('experiences') if "experiences" in validated_data else []
+
         ProfileSkillSerializer.update_profile(instance, skills)
+        ProfileEducationSerializer.update_profile(instance, education)
+        ProfileExperienceSerializer.update_profile(instance, experience)
 
         Profile.objects.filter(id=instance.id).update(**validated_data)
         return instance
