@@ -25,7 +25,7 @@ class Institution(models.Model):
 
 
 class Skill(models.Model):
-    name = models.CharField(max_length=100, primary_key=True)
+    name = models.CharField(max_length=100)
     type = models.BooleanField()
 
 
@@ -51,11 +51,15 @@ class ProfileSkill(models.Model):
     profile = models.ForeignKey(Profile, related_name='skills', on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, related_name='skills', on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = ('skill_id', 'profile',)
+
 
 class ProfileEducation(models.Model):
     profile = models.ForeignKey(Profile, related_name='education', on_delete=models.CASCADE)
     institution = models.ForeignKey(
         Institution, default=Institution.get_default_pk, on_delete=models.SET_DEFAULT)
+    title = models.CharField(max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
 
@@ -105,18 +109,18 @@ def get_upload_post_path(instance, filename):
 class Post(models.Model):
     company = models.ForeignKey(Company, related_name='posts', on_delete=models.CASCADE)
     position = models.CharField(max_length=200)
-    salary_low = models.IntegerField()
-    salary_high = models.IntegerField()
-    currency = models.CharField(max_length=40)
-    position = models.CharField(max_length=200)
-    experience = models.CharField(max_length=200)
-    location = models.CharField(max_length=200)
-    post_description = models.TextField()
-    post_role_description = models.TextField()
-    tasks_summary = models.TextField()
+    salary_low = models.IntegerField(null=True, blank=True)
+    salary_high = models.IntegerField(null=True, blank=True)
+    currency = models.CharField(max_length=40, null=True, blank=True)
+    position = models.CharField(max_length=200, null=True, blank=True)
+    experience = models.CharField(max_length=200, null=True, blank=True)
+    location = models.CharField(max_length=200, null=True, blank=True)
+    post_description = models.TextField(null=True, blank=True)
+    post_role_description = models.TextField(null=True, blank=True)
+    tasks_summary = models.TextField(null=True, blank=True)
     updated = models.DateTimeField(auto_now_add=True)
     created = models.DateTimeField(auto_now=True)
-    ends = models.DateTimeField()
+    ends = models.DateTimeField(null=True, blank=True)
 
 
 class PostSkill(models.Model):
@@ -141,12 +145,12 @@ class Task(models.Model):
         HARD = 2, 'Hard'
     post = models.ForeignKey(Post, related_name='tasks', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
-    description = models.TextField()
-    code = models.FileField(upload_to=get_upload_task_path)
-    test = models.FileField(upload_to=get_upload_task_path)
-    requirements = models.FileField(upload_to=get_upload_task_path)
-    tags = models.CharField(max_length=100)
-    created = models.DateTimeField(auto_now=True)
+    description = models.TextField(null=True, blank=True)
+    code = models.FileField(upload_to=get_upload_task_path, null=True, blank=True)
+    test = models.FileField(upload_to=get_upload_task_path, null=True, blank=True)
+    requirements = models.FileField(upload_to=get_upload_task_path, null=True, blank=True)
+    tags = models.CharField(max_length=100, null=True, blank=True)
+    created = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         unique_together = ('post_id', 'title',)
