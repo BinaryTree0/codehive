@@ -124,8 +124,8 @@ class Post(models.Model):
 
 
 class PostSkill(models.Model):
-    post = models.ForeignKey(Post, related_name="skills", on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
+    post = models.ForeignKey(Post, related_name="post_skills", on_delete=models.CASCADE)
+    skill = models.ForeignKey(Skill, related_name='post_skills', on_delete=models.CASCADE)
 
 
 class PostUser(models.Model):
@@ -149,7 +149,6 @@ class Task(models.Model):
     code = models.FileField(upload_to=get_upload_task_path, null=True, blank=True)
     test = models.FileField(upload_to=get_upload_task_path, null=True, blank=True)
     requirements = models.FileField(upload_to=get_upload_task_path, null=True, blank=True)
-    tags = models.CharField(max_length=100, null=True, blank=True)
     created = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
@@ -157,8 +156,8 @@ class Task(models.Model):
 
 
 class TaskTag(models.Model):
-    task = models.ForeignKey(Task, related_name='task_tags', on_delete=models.CASCADE)
-    tag = models.CharField(max_length=100)
+    task = models.ForeignKey(Task, related_name='tags', on_delete=models.CASCADE)
+    skill = models.ForeignKey(Skill, related_name='tags', on_delete=models.CASCADE)
 
 
 def get_upload_submission_path(instance, filename):
