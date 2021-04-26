@@ -5,18 +5,42 @@ from .models import Institution, Profile, ProfileSkill, Skill,\
     ProfileEducation, ProfileExperience, Post, Task, Company, Submission, PostUser, PostSkill
 
 
-def create_nested(model, validated_data, **kwargs):
-    for data in validated_data:
-        model.objects.create(**kwargs, **data)
+class NestedModelSerializer(serializers.ModelSerializer):
 
+    def create(self, validated_data):
+        arguments = self.get_nested_arguments()
+        for item in arguments:
+            item["data"] = validated_data.pop(
+                item["field"]) if item["field"] in validated_data else []
 
-def update_profile(model, validated_data, unique, **kwargs):
-    for data in validated_data:
-        data = {**kwargs, **data}
-        filter_ = {}
-        for field in unique:
-            filter_[field] = data.pop(field)
-        model.objects.update_or_create(**filter_, defaults=data)
+        model_arguments = self.get_model_arguments()
+        model, field_name = model_arguments["model"], model_arguments["field_name"]
+        instance = model.objects.create(**validated_data)
+        model_data = {field_name: instance}
+
+        for item in arguments:
+            for data in item["data"]:
+                item["class"].objects.create(**model_data, **data)
+        return instance
+
+    def update(self, instance, validated_data):
+        model_arguments = self.get_model_arguments()
+        model, field_name = model_arguments["model"], model_arguments["field_name"]
+        model_data = {field_name: instance}
+
+        arguments = self.get_nested_arguments()
+        for item in arguments:
+            item["data"] = validated_data.pop(
+                item["field"]) if item["field"] in validated_data else []
+            for data in item["data"]:
+                data = {**model_data, **data}
+                filter_ = {}
+                for field in [item["id"], field_name]:
+                    filter_[field] = data.pop(field)
+                item["class"].objects.update_or_create(**filter_, defaults=data)
+
+        model.objects.filter(id=instance.id).update(**validated_data)
+        return instance
 
 
 class InstitutionSerializer(serializers.ModelSerializer):
@@ -73,7 +97,7 @@ class ProfileUserSerializer(serializers.ModelSerializer):
         fields = ["email", "is_company"]
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(NestedModelSerializer):
     skills = ProfileSkillSerializer(many=True, required=False)
     education = ProfileEducationSerializer(many=True, required=False)
     experiences = ProfileExperienceSerializer(many=True, required=False)
@@ -105,35 +129,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_model_arguments(self):
         return {"field_name": "profile", "model": Profile}
 
-    def create(self, validated_data):
-        arguments = self.get_nested_arguments()
-        for item in arguments:
-            item["data"] = validated_data.pop(
-                item["field"]) if item["field"] in validated_data else []
-
-        model_arguments = self.get_model_arguments()
-        model, field_name = model_arguments["model"], model_arguments["field_name"]
-        instance = model.objects.create(**validated_data)
-        model_data = {field_name: instance}
-
-        for item in arguments:
-            create_nested(model=item["class"], validated_data=item["data"], **model_data)
-        return instance
-
-    def update(self, instance, validated_data):
-        model_arguments = self.get_model_arguments()
-        model, field_name = model_arguments["model"], model_arguments["field_name"]
-        model_data = {field_name: instance}
-
-        arguments = self.get_nested_arguments()
-        for item in arguments:
-            data = validated_data.pop(item["field"]) if item["field"] in validated_data else []
-            update_profile(model=item["class"], validated_data=data,
-                           unique=[item["id"], "profile"], **model_data)
-
-        model.objects.filter(id=instance.id).update(**validated_data)
-        return instance
-
     class Meta:
         model = Profile
         fields = "__all__"
@@ -156,7 +151,7 @@ class CompanyPostSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = "__all__"
+        exclude = ["post", ]
 
 
 class PostSkillSerializer(serializers.ModelSerializer):
@@ -164,7 +159,7 @@ class PostSkillSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PostSkill
-        fields = "__all__"
+        exclude = ["post", "skill"]
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
@@ -172,43 +167,40 @@ class PostSkillSerializer(serializers.ModelSerializer):
         return response
 
 
-class PostSerializer(serializers.ModelSerializer):
-    tasks = TaskSerializer(many=True, required=True)
+class PostSerializer(NestedModelSerializer):
+    tasks = TaskSerializer(many=True, required=False)
     skills = PostSkillSerializer(many=True, required=False)
-
+    """
+    {
+      "skills": [
+          {"skill_id": 1}
+      ],
+      "tasks": [
+          {"title": "Hello"},
+          {"title": "Lets gooo"}
+      ],
+      "position": "a"
+    }
+    """
     class Meta:
         model = Post
         fields = "__all__"
         read_only_fields = ('company',)
 
-    def create(self, validated_data):
-        tasks = validated_data.pop('tasks') if "tasks" in validated_data else []
-        skills = validated_data.pop('skills') if "skills" in validated_data else []
+    def get_nested_arguments(self):
+        return [
+            {"field": "skills", "id": "skill_id", "class": PostSkill},
+            {"field": "tasks", "id": "title", "class": Task}
+        ]
 
-        post = Post.objects.create(**validated_data)
-
-        PostUser.objects.create(post=post, user=validated_data["user"])
-        create_nested(model=Task, validated_data=tasks, post=post)
-        create_nested(model=PostSkill, validated_data=skills, post=post)
-        return profile
-
-    def update(self, instance, validated_data):
-        tasks = validated_data.pop('tasks') if "tasks" in validated_data else []
-        skills = validated_data.pop('skills') if "skills" in validated_data else []
-
-        update_profile(model=Task, validated_data=tasks,
-                       unique=["post", "title"], post=instance)
-        update_profile(model=PostSkill, validated_data=skills,
-                       unique=["skill_id", "profile"], post=instance)
-
-        Profile.objects.filter(id=instance.id).update(**validated_data)
-        return instance
+    def get_model_arguments(self):
+        return {"field_name": "post", "model": Post}
 
 
 class TaskListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ["post", "title", "difficulty", "time_limit"]
+        fields = ["post", "title"]
 
 
 class SubmissionSerializer(serializers.ModelSerializer):

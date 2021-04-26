@@ -139,10 +139,6 @@ def get_upload_task_path(instance, filename):
 
 
 class Task(models.Model):
-    class Difficulties(models.IntegerChoices):
-        EASY = 0, 'Easy'
-        INTERMEDIATE = 1, 'Intermediate'
-        HARD = 2, 'Hard'
     post = models.ForeignKey(Post, related_name='tasks', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
