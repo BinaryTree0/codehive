@@ -1,8 +1,9 @@
 from django.urls import path
 from rest_framework import routers
 
-from .views import PostViewSet, TaskViewSet, SubmissionViewSet, CompanyViewSet, \
-    ProfileViewSet, InstitutionViewSet, SkillViewSet
+from .views import (CompanyViewSet, InstitutionViewSet, PostViewSet,
+                    ProfileViewSet, SkillViewSet, SubmissionViewSet,
+                    TaskViewSet)
 
 app_name = "posts"
 

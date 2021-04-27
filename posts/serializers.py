@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
 from custom.models import CustomUser
-from .models import Institution, Profile, ProfileSkill, Skill,\
-    ProfileEducation, ProfileExperience, Post, Task, Company, Submission, PostUser, PostSkill
+
+from .models import (Company, Institution, Post, PostSkill, Profile,
+                     ProfileEducation, ProfileExperience, ProfileSkill, Skill,
+                     Submission, Task, TaskSkill, TaskUser)
 
 
 class NestedModelSerializer(serializers.ModelSerializer):
@@ -49,6 +51,13 @@ class InstitutionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = "__all__"
+        read_only_fields = ("user",)
+
+
 class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
@@ -85,10 +94,7 @@ class ProfileExperienceSerializer(serializers.ModelSerializer):
         model = ProfileExperience
         fields = "__all__"
         read_only_fields = ('profile',)
-
-
-class StringListField(serializers.ListField):
-    child = serializers.CharField(max_length=100)
+        depth = 1
 
 
 class ProfileUserSerializer(serializers.ModelSerializer):
@@ -135,23 +141,46 @@ class ProfileSerializer(NestedModelSerializer):
         depth = 1
 
 
-class CompanySerializer(serializers.ModelSerializer):
+class TaskSkillSerializer(serializers.ModelSerializer):
+
     class Meta:
-        model = Company
+        model = TaskSkill
         fields = "__all__"
-        read_only_fields = ("user",)
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response = response.pop("skill")
+        return response
 
 
-class CompanyPostSerializer(serializers.ModelSerializer):
+class TaskUserSerializer(serializers.ModelSerializer):
+
     class Meta:
-        model = Company
-        fields = ["image", "name"]
+        model = TaskUser
+        fields = "__all__"
 
 
-class TaskSerializer(serializers.ModelSerializer):
+class TaskSerializer(NestedModelSerializer):
+    skills = TaskSkillSerializer(many=True, required=False)
+
     class Meta:
         model = Task
         exclude = ["post", ]
+
+    def get_nested_arguments(self):
+        return [
+            {"field": "skills", "id": "skill_id", "class": PostSkill},
+        ]
+
+    def get_model_arguments(self):
+        return {"field_name": "task", "model": Task}
+
+
+class TaskListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Task
+        fields = ["post", "title"]
 
 
 class PostSkillSerializer(serializers.ModelSerializer):
@@ -195,12 +224,6 @@ class PostSerializer(NestedModelSerializer):
 
     def get_model_arguments(self):
         return {"field_name": "post", "model": Post}
-
-
-class TaskListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Task
-        fields = ["post", "title"]
 
 
 class SubmissionSerializer(serializers.ModelSerializer):

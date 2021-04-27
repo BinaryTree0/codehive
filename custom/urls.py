@@ -3,7 +3,8 @@ from rest_framework import routers
 from rest_framework.authtoken import views
 
 from .views import (ActivateConfirmView, ActivateView, ChangePasswordView,
-                    ResetConfirmView, ResetView, UserViewSet, ObtainAuthTokenWithActivation)
+                    ObtainAuthTokenWithActivation, ResetConfirmView, ResetView,
+                    UserViewSet)
 
 app_name = "custom"
 

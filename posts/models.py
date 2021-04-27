@@ -3,6 +3,38 @@ from django.template.defaultfilters import slugify
 from custom.models import CustomUser
 
 
+def get_upload_user_image_path(instance, filename):
+    return 'image/' + slugify(instance.user.id) + "/user." + filename.split(".")[-1]
+
+
+class Company(models.Model):
+    user = models.OneToOneField(CustomUser, related_name='company', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=get_upload_user_image_path, null=True, blank=True)
+    name = models.CharField(max_length=200)
+    size = models.IntegerField()
+    founded = models.DateField()
+    address = models.CharField(max_length=200)
+    description = models.TextField()
+    facebook = models.CharField(max_length=200, null=True, blank=True)
+    linkedin = models.CharField(max_length=200, null=True, blank=True)
+    twitter = models.CharField(max_length=200, null=True, blank=True)
+    website = models.CharField(max_length=200, null=True, blank=True)
+
+    @classmethod
+    def get_default_pk(cls):
+        company, created = cls.objects.get_or_create(
+            user=1,
+            defaults=dict(
+                name="default",
+                size=0,
+                founded="default",
+                address="default",
+                description="default"
+            )
+        )
+        return company.pk
+
+
 def get_upload_institution_path(instance, filename):
     return 'image/' + slugify(instance.location) + "/"+slugify(instance.name)+"/institution." + filename.split(".")[-1]
 
@@ -27,10 +59,6 @@ class Institution(models.Model):
 class Skill(models.Model):
     name = models.CharField(max_length=100)
     type = models.BooleanField()
-
-
-def get_upload_user_image_path(instance, filename):
-    return 'image/' + slugify(instance.user.id) + "/user." + filename.split(".")[-1]
 
 
 class Profile(models.Model):
@@ -62,34 +90,6 @@ class ProfileEducation(models.Model):
     title = models.CharField(max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
-
-
-class Company(models.Model):
-    user = models.OneToOneField(CustomUser, related_name='company', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to=get_upload_user_image_path, null=True, blank=True)
-    name = models.CharField(max_length=200)
-    size = models.IntegerField()
-    founded = models.DateField()
-    address = models.CharField(max_length=200)
-    description = models.TextField()
-    facebook = models.CharField(max_length=200, null=True, blank=True)
-    linkedin = models.CharField(max_length=200, null=True, blank=True)
-    twitter = models.CharField(max_length=200, null=True, blank=True)
-    website = models.CharField(max_length=200, null=True, blank=True)
-
-    @classmethod
-    def get_default_pk(cls):
-        company, created = cls.objects.get_or_create(
-            user=1,
-            defaults=dict(
-                name="default",
-                size=0,
-                founded="default",
-                address="default",
-                description="default"
-            )
-        )
-        return company.pk
 
 
 class ProfileExperience(models.Model):
@@ -128,12 +128,6 @@ class PostSkill(models.Model):
     skill = models.ForeignKey(Skill, related_name='post_skills', on_delete=models.CASCADE)
 
 
-class PostUser(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    created = models.DateTimeField(auto_now=True)
-
-
 def get_upload_task_path(instance, filename):
     return 'tasks/' + str(instance.post.id) + "/" + slugify(str(instance.title))+"/"+filename
 
@@ -151,9 +145,15 @@ class Task(models.Model):
         unique_together = ('post_id', 'title',)
 
 
-class TaskTag(models.Model):
+class TaskSkill(models.Model):
     task = models.ForeignKey(Task, related_name='tags', on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, related_name='tags', on_delete=models.CASCADE)
+
+
+class TaskUser(models.Model):
+    user = models.ForeignKey(CustomUser, related_name='task_user', on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, related_name='task_user', on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now=True, null=True, blank=True)
 
 
 def get_upload_submission_path(instance, filename):
