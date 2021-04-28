@@ -1,10 +1,11 @@
 from django.urls import path
 from rest_framework_nested import routers
 
-from .views import (CompanyViewSet, InstitutionViewSet, PostViewSet,
+from .views import (CompanyViewSet, InstitutionViewSet, PostSkillViewSet,
+                    PostViewSet, ProfileEducationViewSet,
+                    ProfileExperienceViewSet, ProfileSkillViewSet,
                     ProfileViewSet, SkillViewSet, SubmissionViewSet,
-                    TaskViewSet, ProfileEducationViewSet, ProfileExperienceViewSet,
-                    ProfileSkillViewSet, TaskUserViewSet, PostSkillViewSet)
+                    TaskUserViewSet, TaskViewSet)
 
 app_name = "posts"
 

@@ -1,5 +1,6 @@
 from django.db import models
 from django.template.defaultfilters import slugify
+
 from custom.models import CustomUser
 
 
@@ -156,9 +157,9 @@ def get_upload_submission_path(instance, filename):
 
 
 class Submission(models.Model):
-    author = models.ForeignKey(CustomUser, related_name='submissions', on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, related_name='submissions', on_delete=models.CASCADE)
     task = models.ForeignKey(Task, related_name="submissions", on_delete=models.CASCADE)
     code = models.TextField()
 
     class Meta:
-        unique_together = ('author_id', 'task_id',)
+        unique_together = ('user_id', 'task_id',)
