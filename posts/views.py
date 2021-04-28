@@ -1,13 +1,13 @@
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from .models import (Company, Institution, Post, PostSkill, Profile,
                      ProfileEducation, ProfileExperience, ProfileSkill, Skill,
-                     Submission, Task, TaskSkill, TaskUser)
+                     Submission, Task, TaskUser)
 from .permissions import IsCompany, IsListDetailOrIsAuthenticated
 from .serializers import (CompanySerializer, InstitutionSerializer,
                           PostSerializer, PostSkillSerializer,
@@ -15,7 +15,7 @@ from .serializers import (CompanySerializer, InstitutionSerializer,
                           ProfileExperienceSerializer, ProfileSerializer,
                           ProfileSkillSerializer, SkillSerializer,
                           SubmissionSerializer, TaskListSerializer,
-                          TaskSerializer, TaskSkillSerializer, TaskUserSerializer)
+                          TaskSerializer, TaskUserSerializer)
 
 
 class InstitutionViewSet(viewsets.ModelViewSet):
@@ -37,31 +37,19 @@ class SkillViewSet(viewsets.ModelViewSet):
     serializer_class = SkillSerializer
 
 
-class ProfileSkillViewSet(viewsets.ModelViewSet):
-    queryset = ProfileSkill.objects.all()
-    serializer_class = ProfileSkillSerializer
-
-    def perform_create(self, serializer):
-        profile = get_object_or_404(Profile, user=self.request.user)
-        serializer.save(profile=profile)
+class ProfileSkillViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    def get_queryset(self):
+        return ProfileSkill.objects.filter(profile=self.kwargs['profile_pk'])
 
 
-class ProfileEducationViewSet(viewsets.ModelViewSet):
-    queryset = ProfileEducation.objects.all()
-    serializer_class = ProfileEducationSerializer
-
-    def perform_create(self, serializer):
-        profile = get_object_or_404(Profile, user=self.request.user)
-        serializer.save(profile=profile)
+class ProfileEducationViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    def get_queryset(self):
+        return ProfileEducation.objects.filter(profile=self.kwargs['profile_pk'])
 
 
-class ProfileExperienceViewSet(viewsets.ModelViewSet):
-    queryset = ProfileExperience.objects.all()
-    serializer_class = ProfileExperienceSerializer
-
-    def perform_create(self, serializer):
-        profile = get_object_or_404(Profile, user=self.request.user)
-        serializer.save(profile=profile)
+class ProfileExperienceViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    def get_queryset(self):
+        return ProfileExperience.objects.filter(profile=self.kwargs['profile_pk'])
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -70,16 +58,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-
-class TaskSkillViewSet(viewsets.ModelViewSet):
-    queryset = TaskSkill.objects.all()
-    serializer_class = TaskSkillSerializer
-
-
-class TaskUserViewSet(viewsets.ModelViewSet):
-    queryset = TaskUser.objects.all()
-    serializer_class = TaskUserSerializer
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -92,9 +70,14 @@ class TaskViewSet(viewsets.ModelViewSet):
         return TaskSerializer
 
 
-class PostSkillViewSet(viewsets.ModelViewSet):
-    queryset = PostSkill.objects.all()
-    serializer_class = PostSkillSerializer
+class TaskUserViewSet(viewsets.ModelViewSet):
+    queryset = TaskUser.objects.all()
+    serializer_class = TaskUserSerializer
+
+
+class PostSkillViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    def get_queryset(self):
+        return PostSkill.objects.filter(profile=self.kwargs['post_pk'])
 
 
 class PostViewSet(viewsets.ModelViewSet):

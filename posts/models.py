@@ -77,7 +77,7 @@ class Profile(models.Model):
 
 class ProfileSkill(models.Model):
     profile = models.ForeignKey(Profile, related_name='skills', on_delete=models.CASCADE)
-    skill = models.ForeignKey(Skill, related_name='skills', on_delete=models.CASCADE)
+    skill = models.ForeignKey(Skill, related_name='profile_skills', on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('skill_id', 'profile',)
@@ -124,7 +124,7 @@ class Post(models.Model):
 
 
 class PostSkill(models.Model):
-    post = models.ForeignKey(Post, related_name="post_skills", on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name="skills", on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, related_name='post_skills', on_delete=models.CASCADE)
 
 
@@ -143,11 +143,6 @@ class Task(models.Model):
 
     class Meta:
         unique_together = ('post_id', 'title',)
-
-
-class TaskSkill(models.Model):
-    task = models.ForeignKey(Task, related_name='tags', on_delete=models.CASCADE)
-    skill = models.ForeignKey(Skill, related_name='tags', on_delete=models.CASCADE)
 
 
 class TaskUser(models.Model):

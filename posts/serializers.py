@@ -4,7 +4,7 @@ from custom.models import CustomUser
 
 from .models import (Company, Institution, Post, PostSkill, Profile,
                      ProfileEducation, ProfileExperience, ProfileSkill, Skill,
-                     Submission, Task, TaskSkill, TaskUser)
+                     Submission, Task, TaskUser)
 
 
 class NestedModelSerializer(serializers.ModelSerializer):
@@ -65,7 +65,7 @@ class SkillSerializer(serializers.ModelSerializer):
 
 
 class ProfileSkillSerializer(serializers.ModelSerializer):
-    skill_id = serializers.CharField(write_only=True)
+    skill_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = ProfileSkill
@@ -92,8 +92,7 @@ class ProfileExperienceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProfileExperience
-        fields = "__all__"
-        read_only_fields = ('profile',)
+        exclude = ['profile', ]
         depth = 1
 
 
@@ -141,18 +140,6 @@ class ProfileSerializer(NestedModelSerializer):
         depth = 1
 
 
-class TaskSkillSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = TaskSkill
-        fields = "__all__"
-
-    def to_representation(self, instance):
-        response = super().to_representation(instance)
-        response = response.pop("skill")
-        return response
-
-
 class TaskUserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -160,20 +147,11 @@ class TaskUserSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class TaskSerializer(NestedModelSerializer):
-    skills = TaskSkillSerializer(many=True, required=False)
+class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
         exclude = ["post", ]
-
-    def get_nested_arguments(self):
-        return [
-            {"field": "skills", "id": "skill_id", "class": PostSkill},
-        ]
-
-    def get_model_arguments(self):
-        return {"field_name": "task", "model": Task}
 
 
 class TaskListSerializer(serializers.ModelSerializer):
@@ -188,7 +166,8 @@ class PostSkillSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PostSkill
-        exclude = ["post", "skill"]
+        exclude = ["post", "id"]
+        depth = 1
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
