@@ -115,6 +115,7 @@ class Post(models.Model):
     currency = models.CharField(max_length=40, null=True, blank=True)
     position = models.CharField(max_length=200, null=True, blank=True)
     experience = models.CharField(max_length=200, null=True, blank=True)
+    type = models.CharField(max_length=200, null=True, blank=True)
     location = models.CharField(max_length=200, null=True, blank=True)
     post_description = models.TextField(null=True, blank=True)
     post_role_description = models.TextField(null=True, blank=True)

@@ -7,11 +7,12 @@ from .tokens import account_activation_token, password_reset_token
 
 def send_activation_mail(user):
     token = account_activation_token.make_token(user)
+    print(token)
     subject = 'Activate your account.'
     domain_url = Site.objects.get_current().domain
     relative_url = reverse("user-api:user-activate-confirm")
     url = "http://" + domain_url + relative_url + "?token=" + token
-    message = "Hi "+user.first_name+", please click this link to acctivate your account: "+url
+    message = "Hi, please click this link to acctivate your account: "+url
     email = EmailMessage(
         subject,
         message,

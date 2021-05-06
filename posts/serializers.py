@@ -194,6 +194,7 @@ class PostSerializer(NestedModelSerializer):
         model = Post
         fields = "__all__"
         read_only_fields = ('company',)
+        depth = 1
 
     def get_nested_arguments(self):
         return [

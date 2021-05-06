@@ -41,7 +41,6 @@ class SkillViewSet(viewsets.ModelViewSet):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
     permission_classes = [IsAdmin | ReadOnly, ]
-    authentication_classes = [TokenAuthentication, ]
 
 
 class ProfileSkillViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
