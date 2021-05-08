@@ -1,10 +1,10 @@
 from rest_framework import serializers
 
 from custom.models import CustomUser
-
-from .models import (Company, Institution, Post, PostSkill, Profile,
+from rest_framework.parsers import MultiPartParser
+from .models import (Company, Institution, Post, Profile,
                      ProfileEducation, ProfileExperience, ProfileSkill, Skill,
-                     Submission, Task, TaskUser)
+                     Submission, Task, TaskUser, TestFileUpload)
 
 
 class NestedModelSerializer(serializers.ModelSerializer):
@@ -151,7 +151,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        exclude = ["post", ]
+        fields = "__all__"
 
 
 class TaskListSerializer(serializers.ModelSerializer):
@@ -161,52 +161,23 @@ class TaskListSerializer(serializers.ModelSerializer):
         fields = ["post", "title"]
 
 
-class PostSkillSerializer(serializers.ModelSerializer):
-    skill_id = serializers.CharField(write_only=True)
+class PostSerializer(serializers.ModelSerializer):
+    parser_classes = [MultiPartParser]
 
-    class Meta:
-        model = PostSkill
-        exclude = ["post", "id"]
-        depth = 1
-
-    def to_representation(self, instance):
-        response = super().to_representation(instance)
-        response = response.pop("skill")
-        return response
-
-
-class PostSerializer(NestedModelSerializer):
-    tasks = TaskSerializer(many=True, required=False)
-    skills = PostSkillSerializer(many=True, required=False)
-    """
-    {
-      "skills": [
-          {"skill_id": 1}
-      ],
-      "tasks": [
-          {"title": "Hello"},
-          {"title": "Lets gooo"}
-      ],
-      "position": "a"
-    }
-    """
     class Meta:
         model = Post
         fields = "__all__"
         read_only_fields = ('company',)
         depth = 1
 
-    def get_nested_arguments(self):
-        return [
-            {"field": "skills", "id": "skill_id", "class": PostSkill},
-            {"field": "tasks", "id": "title", "class": Task}
-        ]
-
-    def get_model_arguments(self):
-        return {"field_name": "post", "model": Post}
-
 
 class SubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
+        fields = "__all__"
+
+
+class TestFileUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TestFileUpload
         fields = "__all__"

@@ -109,25 +109,11 @@ def get_upload_post_path(instance, filename):
 
 class Post(models.Model):
     company = models.ForeignKey(Company, related_name='posts', on_delete=models.CASCADE)
-    position = models.CharField(max_length=200)
-    salary_low = models.IntegerField(null=True, blank=True)
-    salary_high = models.IntegerField(null=True, blank=True)
-    currency = models.CharField(max_length=40, null=True, blank=True)
     position = models.CharField(max_length=200, null=True, blank=True)
     experience = models.CharField(max_length=200, null=True, blank=True)
-    type = models.CharField(max_length=200, null=True, blank=True)
-    location = models.CharField(max_length=200, null=True, blank=True)
-    post_description = models.TextField(null=True, blank=True)
-    post_role_description = models.TextField(null=True, blank=True)
-    tasks_summary = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     updated = models.DateTimeField(auto_now_add=True)
     created = models.DateTimeField(auto_now=True)
-    ends = models.DateTimeField(null=True, blank=True)
-
-
-class PostSkill(models.Model):
-    post = models.ForeignKey(Post, related_name="skills", on_delete=models.CASCADE)
-    skill = models.ForeignKey(Skill, related_name='post_skills', on_delete=models.CASCADE)
 
 
 def get_upload_task_path(instance, filename):
@@ -137,6 +123,7 @@ def get_upload_task_path(instance, filename):
 class Task(models.Model):
     post = models.ForeignKey(Post, related_name='tasks', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
+    language = models.CharField(max_length=200, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     code = models.FileField(upload_to=get_upload_task_path, null=True, blank=True)
     test = models.FileField(upload_to=get_upload_task_path, null=True, blank=True)
@@ -164,3 +151,11 @@ class Submission(models.Model):
 
     class Meta:
         unique_together = ('user_id', 'task_id',)
+
+
+def get_upload_test_path(instance, filename):
+    return 'test/'+filename
+
+
+class TestFileUpload(models.Model):
+    code = models.FileField(upload_to=get_upload_test_path, null=True, blank=True)

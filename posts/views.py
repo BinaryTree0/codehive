@@ -1,3 +1,4 @@
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
@@ -5,14 +6,14 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
-from .models import (Company, Institution, Post, PostSkill, Profile,
+from .models import (Company, Institution, Post, Profile,
                      ProfileEducation, ProfileExperience, ProfileSkill, Skill,
-                     Submission, Task, TaskUser)
+                     Submission, Task, TaskUser, TestFileUpload)
 from .permissions import (CreateOnly, IsAdmin, IsAuthenticated, IsCompany,
                           IsCompanyOwner, IsOwner, IsPostOwner, IsProfileOwner,
                           ReadOnly)
 from .serializers import (CompanySerializer, InstitutionSerializer,
-                          PostSerializer, PostSkillSerializer,
+                          PostSerializer, TestFileUploadSerializer,
                           ProfileEducationSerializer,
                           ProfileExperienceSerializer, ProfileSerializer,
                           ProfileSkillSerializer, SkillSerializer,
@@ -99,14 +100,6 @@ class TaskUserViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class PostSkillViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticated & IsCompany & IsPostOwner | IsAdmin | ReadOnly, ]
-    authentication_classes = [TokenAuthentication, ]
-
-    def get_queryset(self):
-        return PostSkill.objects.filter(profile=self.kwargs['post_pk'])
-
-
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -127,3 +120,12 @@ class SubmissionViewSet(viewsets.GenericViewSet, mixins.ListModelMixin,
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class TestFileUploadViewSet(viewsets.ModelViewSet):
+    queryset = TestFileUpload.objects.all()
+    serializer_class = TestFileUploadSerializer
+
+    def create(self, request):
+        print(request["data"])
+        pass
