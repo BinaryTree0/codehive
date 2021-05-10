@@ -41,13 +41,13 @@ class IsProfileOwner(permissions.BasePermission):
 class IsPostOwner(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        return obj.post.profile.user == request.user
+        return obj.company.user == request.user
 
 
-class IsCompanyOwner(permissions.BasePermission):
+class IsTaskOwner(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        return obj.company.user == request.user
+        return obj.post.company.user == request.user
 
 
 class IsCompany(BasePermission):

@@ -6,11 +6,13 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
+import django_filters.rest_framework
+
 from .models import (Company, Institution, Post, Profile,
                      ProfileEducation, ProfileExperience, ProfileSkill, Skill,
                      Submission, Task, TaskUser, TestFileUpload)
 from .permissions import (CreateOnly, IsAdmin, IsAuthenticated, IsCompany,
-                          IsCompanyOwner, IsOwner, IsPostOwner, IsProfileOwner,
+                          IsTaskOwner, IsOwner, IsPostOwner, IsProfileOwner,
                           ReadOnly)
 from .serializers import (CompanySerializer, InstitutionSerializer,
                           PostSerializer, TestFileUploadSerializer,
@@ -39,6 +41,9 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
 
 class SkillViewSet(viewsets.ModelViewSet):
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['name', 'id']
+
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
     permission_classes = [IsAdmin | ReadOnly, ]
@@ -79,15 +84,13 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 
 class TaskViewSet(viewsets.ModelViewSet):
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['post', ]
+
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated & IsCompany & IsCompanyOwner | IsAdmin | ReadOnly, ]
+    permission_classes = [IsAuthenticated & IsCompany & IsTaskOwner | IsAdmin | ReadOnly, ]
     authentication_classes = [TokenAuthentication, ]
-
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return TaskListSerializer
-        return TaskSerializer
 
 
 class TaskUserViewSet(viewsets.ModelViewSet):
@@ -103,7 +106,7 @@ class TaskUserViewSet(viewsets.ModelViewSet):
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated & IsCompany & IsCompanyOwner | IsAdmin | ReadOnly, ]
+    permission_classes = [IsAuthenticated & IsCompany & IsPostOwner | IsAdmin | ReadOnly, ]
     authentication_classes = [TokenAuthentication, ]
 
     def perform_create(self, serializer):
