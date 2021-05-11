@@ -49,28 +49,49 @@ class SkillViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdmin | ReadOnly, ]
 
 
-class ProfileSkillViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+class ProfileSkillViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & IsProfileOwner | IsAdmin, ]
     authentication_classes = [TokenAuthentication, ]
+    serializer_class = ProfileSkillSerializer
 
     def get_queryset(self):
         return ProfileSkill.objects.filter(profile=self.kwargs['profile_pk'])
 
+    def perform_create(self, serializer):
+        profile = Profile.objects.get(id=self.kwargs['profile_pk'])
+        skill = Skill.objects.get(id=serializer.validated_data["skill_id"])
+        serializer.save(profile=profile)
+        serializer.save(skill=skill)
 
-class ProfileEducationViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+
+class ProfileEducationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & IsProfileOwner | IsAdmin, ]
     authentication_classes = [TokenAuthentication, ]
+    serializer_class = ProfileEducationSerializer
 
     def get_queryset(self):
         return ProfileEducation.objects.filter(profile=self.kwargs['profile_pk'])
 
+    def perform_create(self, serializer):
+        profile = Profile.objects.get(id=self.kwargs['profile_pk'])
+        institution = Institution.objects.get(id=serializer.validated_data["institution_id"])
+        serializer.save(profile=profile)
+        serializer.save(institution=institution)
 
-class ProfileExperienceViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+
+class ProfileExperienceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & IsProfileOwner | IsAdmin, ]
     authentication_classes = [TokenAuthentication, ]
+    serializer_class = ProfileExperienceSerializer
 
     def get_queryset(self):
         return ProfileExperience.objects.filter(profile=self.kwargs['profile_pk'])
+
+    def perform_create(self, serializer):
+        profile = Profile.objects.get(id=self.kwargs['profile_pk'])
+        company = Company.objects.get(id=serializer.validated_data["company_id"])
+        serializer.save(profile=profile)
+        serializer.save(company=company)
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -78,6 +99,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated & IsOwner | IsAdmin | ReadOnly, ]
     authentication_classes = [TokenAuthentication, ]
+
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ['user_id']
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.renderers import JSONRenderer
 
 from .models import CustomUser, UserActivationToken, UserResetToken
 from .permissions import IsCreationOrIsAuthenticated
@@ -63,7 +64,7 @@ class ActivateConfirmView(CreateAPIView):
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            token = activation_token = serializer.data["token"]
+            token = serializer.data["token"]
             user = UserActivationToken.objects.get(activation_token=token).user
 
             if user is not None and account_activation_token.check_token(user, token):
@@ -139,3 +140,12 @@ class ChangePasswordView(UpdateAPIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserAuthToken(APIView):
+
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+
+    def get(self, request):
+        return Response(data={"id": self.request.user.id, "is_company": self.request.user.is_company}, status=status.HTTP_200_OK)

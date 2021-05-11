@@ -102,37 +102,8 @@ class ProfileUserSerializer(serializers.ModelSerializer):
         fields = ["email", "is_company"]
 
 
-class ProfileSerializer(NestedModelSerializer):
-    skills = ProfileSkillSerializer(many=True, required=False)
-    education = ProfileEducationSerializer(many=True, required=False)
-    experiences = ProfileExperienceSerializer(many=True, required=False)
+class ProfileSerializer(serializers.ModelSerializer):
     user = ProfileUserSerializer(read_only=True)
-
-    """
-    {
-      "skills": [
-          {"skill_id": 1}
-      ],
-      "education": [
-          {"institution_id":1,"title": "Hello","start_date":"2015-02-11", "end_date":"2015-02-11"}
-      ],
-      "experiences": [
-          {"company_id":1,"start_date":"2015-02-11", "end_date":"2017-02-11", "description":"Hello world"}
-      ],
-      "first_name": "a",
-      "last_name": "a"
-    }
-    """
-
-    def get_nested_arguments(self):
-        return [
-            {"field": "skills", "id": "skill_id", "class": ProfileSkill},
-            {"field": "education", "id": "institution_id", "class": ProfileEducation},
-            {"field": "experiences", "id": "company_id", "class": ProfileExperience}
-        ]
-
-    def get_model_arguments(self):
-        return {"field_name": "profile", "model": Profile}
 
     class Meta:
         model = Profile

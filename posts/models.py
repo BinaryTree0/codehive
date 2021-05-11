@@ -97,7 +97,7 @@ class ProfileExperience(models.Model):
     profile = models.ForeignKey(Profile, related_name="experiences", on_delete=models.CASCADE)
     company = models.ForeignKey(Company, related_name="experiences",
                                 default=Company.get_default_pk, on_delete=models.SET_DEFAULT)
-    description = models.TextField()
+    title = models.CharField(max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
 
