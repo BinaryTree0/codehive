@@ -148,4 +148,6 @@ class UserAuthToken(APIView):
     authentication_classes = [TokenAuthentication, ]
 
     def get(self, request):
+        print(self.request.user)
+        print(self.request.user.is_company)
         return Response(data={"id": self.request.user.id, "is_company": self.request.user.is_company}, status=status.HTTP_200_OK)
